@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth
+  namespace: simple-buy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      labels:
+        app: auth
+    spec:
+      containers:
+        - name: auth
+          image: registry.gdgkube.xyz/sayedimran/simple-buy-auth:v1.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8081
+              name: http
+            - containerPort: 9081
+              name: grpc
+          env:
+            - name: HTTP_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: simple-buy-config
+                  key: AUTH_HTTP_PORT
+            - name: GRPC_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: simple-buy-config
+                  key: AUTH_GRPC_PORT
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: simple-buy-secrets
+                  key: DATABASE_URL_AUTH
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: simple-buy-secrets
+                  key: JWT_SECRET
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8081
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8081
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth
+  namespace: simple-buy
+spec:
+  selector:
+    app: auth
+  ports:
+    - port: 8081
+      targetPort: 8081
+      name: http
+    - port: 9081
+      targetPort: 9081
+      name: grpc
+  type: ClusterIP

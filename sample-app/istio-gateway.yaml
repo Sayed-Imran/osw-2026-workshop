@@ -1,0 +1,25 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: simple-buy-gateway
+  namespace: simple-buy
+spec:
+  selector:
+    istio: ingressgateway # use Istio default gateway
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - "*"
+  # Uncomment for HTTPS support
+  # - port:
+  #     number: 443
+  #     name: https
+  #     protocol: HTTPS
+  #   tls:
+  #     mode: SIMPLE
+  #     credentialName: simple-buy-tls-cert
+  #   hosts:
+  #   - "simple-buy.example.com"

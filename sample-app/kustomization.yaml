@@ -1,0 +1,66 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: simple-buy
+
+  # Namespace
+
+  # ConfigMaps and Secrets
+  # - nginx-configmap.yaml  # Disabled: Using Istio instead
+
+  # Persistent Storage
+
+  # Infrastructure (StatefulSets)
+
+  # Microservices (Deployments)
+
+  # Frontend
+  # - nginx-deployment.yaml  # Disabled: Using Istio IngressGateway instead
+
+  # Istio Service Mesh
+resources:
+- namespace.yaml
+- configmap.yaml
+- secrets.yaml
+- postgres-init-configmap.yaml
+- postgres-pvc.yaml
+- postgres-statefulset.yaml
+- redis-statefulset.yaml
+- rabbitmq-statefulset.yaml
+- auth-deployment.yaml
+- product-deployment.yaml
+- cart-deployment.yaml
+- order-deployment.yaml
+- notification-deployment.yaml
+- frontend-deployment.yaml
+- istio-gateway.yaml
+- istio-virtualservice.yaml
+
+  # Ingress (K8s Native - optional alternative to Istio)
+  # - ingress.yaml
+
+
+images:
+- name: registry.gdgkube.xyz/sayedimran/simple-buy-auth
+  newName: registry.gdgkube.xyz/sayedimran/simple-buy-auth
+  newTag: v1.0.0
+- name: registry.gdgkube.xyz/sayedimran/simple-buy-product
+  newName: registry.gdgkube.xyz/sayedimran/simple-buy-product
+  newTag: v1.0.0
+- name: registry.gdgkube.xyz/sayedimran/simple-buy-cart
+  newName: registry.gdgkube.xyz/sayedimran/simple-buy-cart
+  newTag: v1.0.0
+- name: registry.gdgkube.xyz/sayedimran/simple-buy-order
+  newName: registry.gdgkube.xyz/sayedimran/simple-buy-order
+  newTag: v1.0.0
+- name: registry.gdgkube.xyz/sayedimran/simple-buy-notification
+  newName: registry.gdgkube.xyz/sayedimran/simple-buy-notification
+  newTag: v1.0.0
+- name: registry.gdgkube.xyz/sayedimran/simple-buy-frontend
+  newName: registry.gdgkube.xyz/sayedimran/simple-buy-frontend
+  newTag: v1.0.1
+labels:
+- includeSelectors: true
+  pairs:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/part-of: simple-buy

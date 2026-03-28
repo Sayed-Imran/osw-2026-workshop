@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product
+  namespace: simple-buy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: product
+  template:
+    metadata:
+      labels:
+        app: product
+    spec:
+      containers:
+        - name: product
+          image: registry.gdgkube.xyz/sayedimran/simple-buy-product:v1.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8082
+              name: http
+            - containerPort: 9082
+              name: grpc
+          env:
+            - name: HTTP_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: simple-buy-config
+                  key: PRODUCT_HTTP_PORT
+            - name: GRPC_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: simple-buy-config
+                  key: PRODUCT_GRPC_PORT
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: simple-buy-secrets
+                  key: DATABASE_URL_PRODUCT
+            - name: RABBITMQ_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: simple-buy-config
+                  key: RABBITMQ_URL
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: simple-buy-secrets
+                  key: JWT_SECRET
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8082
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8082
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: product
+  namespace: simple-buy
+spec:
+  selector:
+    app: product
+  ports:
+    - port: 8082
+      targetPort: 8082
+      name: http
+    - port: 9082
+      targetPort: 9082
+      name: grpc
+  type: ClusterIP

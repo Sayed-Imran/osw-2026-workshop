@@ -1,0 +1,17 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: cluster2
+networking:
+  podSubnet: "10.245.0.0/16"
+  serviceSubnet: "10.97.0.0/16"
+nodes:
+  - role: control-plane
+    image: registry.gdgkube.xyz/kindest/node:v1.34.3
+    extraPortMappings:
+      - containerPort: 30000
+        hostPort: 8081
+        protocol: TCP
+  # - role: worker
+  #   image: registry.gdgkube.xyz/kindest/node:v1.34.3
+  # - role: worker
+  #   image: registry.gdgkube.xyz/kindest/node:v1.34.3
