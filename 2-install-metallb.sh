@@ -12,6 +12,15 @@ METALLB_VERSION="v0.14.9"
 METALLB_MANIFEST_URL="https://raw.githubusercontent.com/metallb/metallb/${METALLB_VERSION}/config/manifests/metallb-native.yaml"
 METALLB_LOCAL_MANIFEST="configs/metallb/metallb-native.yaml"
 
+# Portable sed -i helper (BSD sed on macOS requires '', GNU sed on Linux does not)
+sedi() {
+    if sed --version 2>/dev/null | grep -q GNU; then
+        sed -i "$@"
+    else
+        sed -i '' "$@"
+    fi
+}
+
 echo "Detecting kind network IP range..."
 
 # Get the kind network subnet (IPv4 only)
@@ -43,24 +52,26 @@ echo ""
 # Update metallb-cluster1.yaml
 echo "Updating metallb-cluster1.yaml..."
 # Remove existing IP address lines
-sed -i '/^    - [0-9]/d' configs/metallb/metallb-cluster1.yaml
+sedi '/^    - [0-9]/d' configs/metallb/metallb-cluster1.yaml
 # Add new IP range after addresses:
-sed -i "/addresses:/a\    - ${CLUSTER1_START}-${CLUSTER1_END}" configs/metallb/metallb-cluster1.yaml
+sedi "/addresses:/a\\
+    - ${CLUSTER1_START}-${CLUSTER1_END}" configs/metallb/metallb-cluster1.yaml
 
 # Update metallb-cluster2.yaml
 echo "Updating metallb-cluster2.yaml..."
 # Remove existing IP address lines
-sed -i '/^    - [0-9]/d' configs/metallb/metallb-cluster2.yaml
+sedi '/^    - [0-9]/d' configs/metallb/metallb-cluster2.yaml
 # Add new IP range after addresses:
-sed -i "/addresses:/a\    - ${CLUSTER2_START}-${CLUSTER2_END}" configs/metallb/metallb-cluster2.yaml
+sedi "/addresses:/a\\
+    - ${CLUSTER2_START}-${CLUSTER2_END}" configs/metallb/metallb-cluster2.yaml
 
 echo ""
 echo "Downloading MetalLB manifest locally..."
 curl -sSL "$METALLB_MANIFEST_URL" -o "$METALLB_LOCAL_MANIFEST"
 
 echo "Replacing images with custom images..."
-sed -i "s|image: quay.io/metallb/controller:.*|image: ${METALLB_CONTROLLER_IMAGE}|g" "$METALLB_LOCAL_MANIFEST"
-sed -i "s|image: quay.io/metallb/speaker:.*|image: ${METALLB_SPEAKER_IMAGE}|g" "$METALLB_LOCAL_MANIFEST"
+sedi "s|image: quay.io/metallb/controller:.*|image: ${METALLB_CONTROLLER_IMAGE}|g" "$METALLB_LOCAL_MANIFEST"
+sedi "s|image: quay.io/metallb/speaker:.*|image: ${METALLB_SPEAKER_IMAGE}|g" "$METALLB_LOCAL_MANIFEST"
 
 echo "Images in manifest after substitution:"
 grep 'image:' "$METALLB_LOCAL_MANIFEST"
