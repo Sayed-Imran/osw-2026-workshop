@@ -27,3 +27,6 @@ istioctl --context="${CTX_CLUSTER2}" install -y -f configs/istio/eastwest-gatewa
 
 # Expose services on cluster2
 kubectl --context="${CTX_CLUSTER2}" apply -n istio-system -f configs/istio/expose-services.yaml
+
+# Delete CA secrets file
+rm -f configs/istio/istio-ca-secrets.yaml
